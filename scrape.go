@@ -8,51 +8,43 @@ import (
 	"golang.org/x/net/html"
 )
 
-// Extract all links from a page and concurrently returns them over the linkChan
-func scrape(URLChan chan string, dataChan chan string) {
-	URL := ""
+// Extract all links from a page and concurrently returns them over the datachan
+func scrape(URL string, dataChan chan string) {
+
+	res, err := http.Get(URL)
+
+	if err != nil {
+		fmt.Println("Failed to crawl: " + URL)
+		return
+	}
+	defer res.Body.Close()
+
+	tokenizer := html.NewTokenizer(res.Body)
+
 	for {
-		URL = ""
-		select {
-		case URL = <-URLChan:
-		}
+		tokenType := tokenizer.Next()
 
-		res, err := http.Get(URL)
+		switch {
+		case tokenType == html.ErrorToken:
+			break
 
-		if err != nil {
-			fmt.Println("Failed to crawl: " + URL)
-			return
-		}
-		defer res.Body.Close()
+		case tokenType == html.StartTagToken:
+			token := tokenizer.Token()
 
-		tokenizer := html.NewTokenizer(res.Body)
+			isATag := token.Data == "a"
+			if !isATag {
+				continue
+			}
 
-		for {
-			tokenType := tokenizer.Next()
+			newURL, ok := getHrefLink(token)
 
-			switch {
-			case tokenType == html.ErrorToken:
-				break
+			if !ok {
+				continue
+			}
 
-			case tokenType == html.StartTagToken:
-				token := tokenizer.Token()
-
-				isATag := token.Data == "a"
-				if !isATag {
-					continue
-				}
-
-				newURL, ok := getHrefLink(token)
-
-				if !ok {
-					continue
-				}
-
-				hasHTTP := strings.Index(newURL, "http") == 0
-				if hasHTTP {
-					dataChan <- newURL
-					URLChan <- newURL
-				}
+			hasHTTP := strings.Index(newURL, "http") == 0
+			if hasHTTP {
+				dataChan <- newURL
 			}
 		}
 	}
