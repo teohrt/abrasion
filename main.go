@@ -1,11 +1,12 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
-	"log"
 	"os"
 	"strings"
+
+	a "./aggregate"
+	s "./scrape"
 )
 
 func main() {
@@ -25,32 +26,7 @@ func main() {
 
 	dataChan := make(chan string)
 
-	go aggregate(dataChan)
+	go a.Aggregate(dataChan)
 
-	scrape(URL, dataChan)
-}
-
-// Scrapes new URLs and logs them
-func aggregate(dataChan chan string) {
-	file, err := os.Create("result.csv")
-	if err != nil {
-		log.Fatal("Error with csv.", err)
-	}
-
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
-
-	fmt.Println("Abrasion in progress...")
-	for {
-		select {
-		case newURL := <-dataChan:
-			go scrape(newURL, dataChan)
-
-			err := writer.Write([]string{newURL})
-
-			if err != nil {
-				fmt.Println("Cannot write URL to file. : ", newURL)
-			}
-		}
-	}
+	s.Scrape(URL, dataChan)
 }

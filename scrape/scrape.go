@@ -1,4 +1,4 @@
-package main
+package scrape
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	"golang.org/x/net/html"
 )
 
-// Extract all links from a page and concurrently returns them over the datachan
-func scrape(URL string, dataChan chan string) {
+// Scrape extracts all links from a page and concurrently returns them over the datachan
+func Scrape(URL string, dataChan chan string) {
 
 	res, err := http.Get(URL)
 
