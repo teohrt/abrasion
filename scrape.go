@@ -1,4 +1,4 @@
-package scrape
+package main
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	"golang.org/x/net/html"
 )
 
-// Scrape extracts all links from a page and concurrently returns them over the datachan
-func Scrape(URL string, dataChan chan string) {
+// Extracts all links from a page and concurrently returns them over the datachan
+func scrape(URL string, dataChan chan string) {
 
 	res, err := http.Get(URL)
 
@@ -50,16 +50,17 @@ func Scrape(URL string, dataChan chan string) {
 	}
 }
 
-func getHrefLink(t html.Token) (string, bool) {
-	URL := ""
-	ok := false
+func getHrefLink(t html.Token) (URL string, ok bool) {
+	URL = ""
+	ok = false
 
 	for _, a := range t.Attr {
 		if a.Key == "href" {
 			URL = a.Val
 			ok = true
+			return
 		}
 	}
 
-	return URL, ok
+	return
 }

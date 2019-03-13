@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	a "./aggregate"
-	s "./scrape"
 )
 
 func main() {
@@ -26,7 +23,7 @@ func main() {
 
 	dataChan := make(chan string)
 
-	go a.Aggregate(dataChan)
+	go aggregate(dataChan)
 
-	s.Scrape(URL, dataChan)
+	scrape(URL, dataChan)
 }
