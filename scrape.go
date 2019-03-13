@@ -61,6 +61,5 @@ func getHrefLink(t html.Token) (URL string, ok bool) {
 			return
 		}
 	}
-
 	return
 }

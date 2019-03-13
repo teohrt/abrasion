@@ -6,14 +6,18 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"time"
 )
 
 // Scrapes new URLs and logs them
 func aggregate(dataChan chan string) {
-	logger := newCSVWriter("result.csv")
+	currentTime := time.Now()
+	fileName := "AbrasionResult-" + currentTime.Format("2006-01-02 3:4:5 pm") + ".csv"
+
+	logger := newCSVWriter(fileName)
 	defer logger.Flush()
 
-	visited := make(map[string]int)
+	visitedURLs := make(map[string]bool)
 
 	fmt.Println("Abrasion in progress...")
 	for {
@@ -26,9 +30,9 @@ func aggregate(dataChan chan string) {
 			}
 
 			// If hostname hasn't already been visited
-			if _, exists := visited[u.Host]; !exists {
+			if _, exists := visitedURLs[u.Host]; !exists {
 				fmt.Println(u.Host)
-				visited[u.Host] = 1
+				visitedURLs[u.Host] = true
 
 				go scrape(URLString, dataChan)
 
@@ -37,16 +41,13 @@ func aggregate(dataChan chan string) {
 				if err != nil {
 					fmt.Println("Cannot write URL to file. : ", URLString)
 				}
-			} else {
-				// Incremenet hit count for popularity tracking
-				visited[u.Host] = visited[u.Host] + 1
 			}
 		}
 	}
 }
 
 func newCSVWriter(filename string) *csv.Writer {
-	file, err := os.Create("result.csv")
+	file, err := os.Create(filename)
 	if err != nil {
 		log.Fatal("Error with csv.", err)
 	}
