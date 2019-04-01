@@ -1,29 +1,21 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"strings"
+	"flag"
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Supply a URL.")
-		fmt.Println("Example: 'go run main.go http://google.com'")
-		return
+
+	s := flag.String("url", "https://www.google.com", "The seed URL Abrasion enters the web with.")
+	r := flag.String("regex", "", "The regular expression Abrasion searches for.")
+	c := make(chan string)
+	flag.Parse()
+
+	config := Config{
+		site:     s,
+		regex:    r,
+		dataChan: c,
 	}
 
-	URL := os.Args[1]
-
-	hasHTTP := strings.Index(URL, "http") == 0
-	if !hasHTTP {
-		fmt.Println("URL must start with 'http://'")
-		return
-	}
-
-	dataChan := make(chan string)
-
-	go aggregate(dataChan)
-
-	scrape(URL, dataChan)
+	run(config)
 }
