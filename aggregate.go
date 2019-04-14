@@ -10,7 +10,7 @@ import (
 )
 
 // Scrapes new URLs and logs them
-func aggregate(config Config) {
+func (c *config) aggregate() {
 	currentTime := time.Now()
 	fileName := "AbrasionResult-" + currentTime.Format("2006-01-02 3:4:5 pm") + ".csv"
 
@@ -22,7 +22,7 @@ func aggregate(config Config) {
 	fmt.Println("Abrasion in progress...")
 	for {
 		select {
-		case URLString := <-config.dataChan:
+		case URLString := <-c.dataChan:
 			u, err := url.Parse(URLString)
 			if err != nil {
 				fmt.Println("Error parsing URL. :", URLString)
@@ -34,7 +34,7 @@ func aggregate(config Config) {
 				fmt.Println(u.Host)
 				visitedURLs[u.Host] = true
 
-				go scrape(URLString, config.dataChan)
+				go c.scrape(URLString)
 
 				err = logger.Write([]string{URLString})
 

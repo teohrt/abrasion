@@ -5,16 +5,20 @@ import (
 )
 
 func main() {
-
-	s := flag.String("url", "https://www.google.com", "The seed URL Abrasion enters the web with.")
-	r := flag.String("regex", "", "The regular expression Abrasion searches for.")
-	c := make(chan string)
+	seed := flag.String("url", "https://www.google.com", "The seed URL Abrasion begins scraping the web with.")
+	reg := flag.String("regex", "", "The regular expression Abrasion searches for.")
+	v := flag.Bool("verbose", false, "Sets verbose logging.")
+	ch := make(chan string)
 	flag.Parse()
 
-	config := Config{
-		site:     s,
-		regex:    r,
-		dataChan: c,
+	searchWithRegex := *reg != ""
+
+	config := &config{
+		site:        *seed,
+		regexValue:  *reg,
+		regexSearch: searchWithRegex,
+		verbose:     *v,
+		dataChan:    ch,
 	}
 
 	run(config)

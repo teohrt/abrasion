@@ -9,7 +9,7 @@ import (
 )
 
 // Extracts all links from a page and concurrently returns them over the datachan
-func scrape(URL string, dataChan chan string) {
+func (c *config) scrape(URL string) {
 
 	res, err := http.Get(URL)
 
@@ -44,7 +44,7 @@ func scrape(URL string, dataChan chan string) {
 
 			hasHTTP := strings.Index(newURL, "http") == 0
 			if hasHTTP {
-				dataChan <- newURL
+				c.dataChan <- newURL
 			}
 		}
 	}

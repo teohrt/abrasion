@@ -6,24 +6,26 @@ import (
 	"strings"
 )
 
-type Config struct {
-	site     *string
-	regex    *string
-	dataChan chan string
+type config struct {
+	site        string
+	regexValue  string
+	regexSearch bool
+	verbose     bool
+	dataChan    chan string
 }
 
-func validate(c *Config) {
-	hasHTTP := strings.Index(*c.site, "http") == 0
+func validate(c *config) {
+	hasHTTP := strings.Index(c.site, "http") == 0
 	if !hasHTTP {
 		fmt.Println("URL must start with 'http://'")
 		os.Exit(1)
 	}
 }
 
-func run(config Config) {
-	validate(&config)
+func run(c *config) {
+	validate(c)
 
-	go aggregate(config)
+	go c.aggregate()
 
-	scrape(*config.site, config.dataChan)
+	c.scrape(c.site)
 }
