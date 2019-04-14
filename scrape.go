@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -14,7 +13,7 @@ func (c *config) scrape(URL string) {
 	res, err := http.Get(URL)
 
 	if err != nil {
-		fmt.Println("Failed to crawl: " + URL)
+		c.logMsg("Failed to crawl: " + URL)
 		return
 	}
 	defer res.Body.Close()
