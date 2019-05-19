@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"net/http"
@@ -8,12 +8,12 @@ import (
 )
 
 // Extracts all links from a page and concurrently returns them over the datachan
-func (c *config) scrape(URL string) {
+func (c *Config) scrape(URL string) {
 
 	res, err := http.Get(URL)
 
 	if err != nil {
-		c.logMsg("Failed to crawl: " + URL)
+		c.log("Failed to crawl: " + URL)
 		return
 	}
 	defer res.Body.Close()
@@ -43,7 +43,7 @@ func (c *config) scrape(URL string) {
 
 			hasHTTP := strings.Index(newURL, "http") == 0
 			if hasHTTP {
-				c.dataChan <- newURL
+				c.DataChan <- newURL
 			}
 		}
 	}

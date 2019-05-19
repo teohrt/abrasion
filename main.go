@@ -2,24 +2,26 @@ package main
 
 import (
 	"flag"
+
+	"github.com/teohrt/abrasion/app"
 )
 
 func main() {
-	seed := flag.String("url", "https://www.google.com", "The seed URL Abrasion begins scraping the web with.")
-	reg := flag.String("regex", "", "The regular expression Abrasion searches for.")
-	v := flag.Bool("verbose", false, "Sets verbose logging.")
-	ch := make(chan string)
+	seedSite := flag.String("url", "https://www.google.com", "The URL with which Abrasion begins scraping the web")
+	regexValue := flag.String("regex", "", "The regular expression Abrasion searches for")
+	verbose := flag.Bool("verbose", false, "Sets verbose logging")
 	flag.Parse()
 
-	searchWithRegex := *reg != ""
+	ch := make(chan string)
+	searchWithRegex := *regexValue != ""
 
-	config := &config{
-		site:        *seed,
-		regexValue:  *reg,
-		regexSearch: searchWithRegex,
-		verbose:     *v,
-		dataChan:    ch,
+	config := &app.Config{
+		Site:        *seedSite,
+		RegexValue:  *regexValue,
+		RegexSearch: searchWithRegex,
+		Verbose:     *verbose,
+		DataChan:    ch,
 	}
 
-	run(config)
+	app.Start(config)
 }

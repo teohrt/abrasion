@@ -5,7 +5,7 @@ BINARY_NAME=abrasion
 run: build
 	./$(BINARY_NAME)
 build:
-	$(GOBUILD) -o $(BINARY_NAME) -v ./...
+	$(GOBUILD)
 clean:
 	rm -f $(BINARY_NAME)
 	rm *.csv
