@@ -8,12 +8,10 @@ import (
 )
 
 // Extracts all links from a page and concurrently returns them over the datachan
-func (c *Config) scrape(URL string) {
-
+func (c *Config) Scrape(URL string) {
 	res, err := http.Get(URL)
-
 	if err != nil {
-		c.log("Failed to crawl: " + URL)
+		c.ErrorLogger.Log("Failed to crawl: " + URL)
 		return
 	}
 	defer res.Body.Close()
@@ -50,9 +48,6 @@ func (c *Config) scrape(URL string) {
 }
 
 func getHrefLink(t html.Token) (URL string, ok bool) {
-	URL = ""
-	ok = false
-
 	for _, a := range t.Attr {
 		if a.Key == "href" {
 			URL = a.Val

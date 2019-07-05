@@ -12,16 +12,11 @@ func main() {
 	verbose := flag.Bool("verbose", false, "Sets verbose logging")
 	flag.Parse()
 
-	ch := make(chan string)
-	searchWithRegex := *regexValue != ""
-
-	config := &app.Config{
-		Site:        *seedSite,
-		RegexValue:  *regexValue,
-		RegexSearch: searchWithRegex,
-		Verbose:     *verbose,
-		DataChan:    ch,
-	}
-
-	app.Start(config)
+	app.Start(&app.Config{
+		Site:       *seedSite,
+		RegexValue: *regexValue,
+		Verbose:    *verbose,
+		DataChan:   make(chan string),
+		URLChan:    make(chan string),
+	})
 }
