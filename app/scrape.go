@@ -18,11 +18,17 @@ func (c *Config) Scrape(URL string) {
 
 	tokenizer := html.NewTokenizer(res.Body)
 
+	loop := true
 	for {
+		if loop == false {
+			break
+		}
+
 		tokenType := tokenizer.Next()
 
 		switch {
 		case tokenType == html.ErrorToken:
+			loop = false
 			break
 
 		case tokenType == html.StartTagToken:

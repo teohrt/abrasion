@@ -26,11 +26,15 @@ func Start(c *Config) {
 
 	c.ErrorLogger = utils.NewLogger(errorFileName, c.Verbose)
 	c.ResultLogger = utils.NewLogger(resultFileName, c.Verbose)
+	c.DataChan = make(chan string)
+	c.URLChan = make(chan string)
 
 	validate(c)
 
 	go c.Process()
 	c.Scrape(c.Site)
+
+	select {} // Block forever
 }
 
 func validate(c *Config) {

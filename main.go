@@ -16,7 +16,5 @@ func main() {
 		Site:       *seedSite,
 		RegexValue: *regexValue,
 		Verbose:    *verbose,
-		DataChan:   make(chan string),
-		URLChan:    make(chan string),
 	})
 }
