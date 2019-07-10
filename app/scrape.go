@@ -11,7 +11,7 @@ import (
 func (c *Config) Scrape(URL string) {
 	res, err := http.Get(URL)
 	if err != nil {
-		c.ErrorLogger.Log("Failed to crawl: " + URL)
+		c.ErrorLogger.Log(err.Error())
 		return
 	}
 	defer res.Body.Close()
@@ -47,7 +47,7 @@ func (c *Config) Scrape(URL string) {
 
 			hasHTTP := strings.Index(newURL, "http") == 0
 			if hasHTTP {
-				c.DataChan <- newURL
+				c.URLChan <- newURL
 			}
 		}
 	}

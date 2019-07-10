@@ -15,7 +15,7 @@ func (c *Config) Process() {
 	fmt.Println("Abrasion is scraping...")
 	for {
 		select {
-		case URLString := <-c.DataChan:
+		case URLString := <-c.URLChan:
 			u, err := url.Parse(URLString)
 			if err != nil {
 				c.ErrorLogger.Log("Error parsing URL. : " + URLString)
