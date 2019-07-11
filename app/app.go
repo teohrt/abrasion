@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -11,12 +12,13 @@ import (
 
 type Config struct {
 	Site         string
-	RegexValue   string
+	GetEmail     bool
 	Verbose      bool
 	DataChan     chan string
 	URLChan      chan string
 	ErrorLogger  utils.Logger
 	ResultLogger utils.Logger
+	Regex        *regexp.Regexp
 }
 
 func Start(c *Config) {
@@ -28,6 +30,11 @@ func Start(c *Config) {
 	c.ResultLogger = utils.NewLogger(resultFileName, c.Verbose)
 	c.DataChan = make(chan string)
 	c.URLChan = make(chan string)
+
+	if c.GetEmail {
+		exp := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+		c.Regex = exp
+	}
 
 	validate(c)
 

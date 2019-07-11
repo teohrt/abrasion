@@ -13,23 +13,46 @@ func (c *Config) Process() {
 	visitedURLs := make(map[string]bool)
 
 	fmt.Println("Abrasion is scraping...")
-	for {
-		select {
-		case URLString := <-c.URLChan:
-			u, err := url.Parse(URLString)
-			if err != nil {
-				c.ErrorLogger.Log("Error parsing URL. : " + URLString)
-				continue
-			}
 
-			// If hostname hasn't already been visited
-			if _, exists := visitedURLs[u.Host]; !exists {
-				c.ResultLogger.Log(u.Host)
+	go func() {
+		for {
+			select {
+			case URLString := <-c.URLChan:
+				u, err := url.Parse(URLString)
+				if err != nil {
+					c.ErrorLogger.Log("Error parsing URL. : " + URLString)
+					continue
+				}
 
-				visitedURLs[u.Host] = true
+				// If hostname hasn't already been visited
+				if _, exists := visitedURLs[u.Host]; !exists {
+					if !c.GetEmail {
+						c.ResultLogger.Log(u.Host)
+					}
 
-				go c.Scrape(URLString)
+					visitedURLs[u.Host] = true
+
+					go c.Scrape(URLString)
+				}
+
+			case result := <-c.DataChan:
+				if c.GetEmail {
+					c.ResultLogger.Log(result)
+				}
 			}
 		}
-	}
+	}()
+
+	go func() {
+		for {
+			select {
+			case result := <-c.DataChan:
+				if c.GetEmail {
+					c.ResultLogger.Log(result)
+				}
+
+			}
+		}
+	}()
+
 }

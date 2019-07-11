@@ -8,6 +8,9 @@ run: build
 run-v: build
 	./$(BINARY_NAME) -verbose
 
+email: build
+	./$(BINARY_NAME) -getEmail
+
 build:
 	$(GOBUILD)
 	
