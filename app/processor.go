@@ -34,11 +34,6 @@ func (c *Config) Process() {
 
 					go c.Scrape(URLString)
 				}
-
-			case result := <-c.DataChan:
-				if c.GetEmail {
-					c.ResultLogger.Log(result)
-				}
 			}
 		}
 	}()
