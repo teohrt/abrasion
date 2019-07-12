@@ -22,6 +22,19 @@ type Config struct {
 }
 
 func Start(c *Config) {
+	// Get ready to work
+	initApp(c)
+	validateConfig(c)
+
+	// Work
+	go c.Process()
+	c.Scrape(c.Site)
+
+	// Don't stop
+	select {}
+}
+
+func initApp(c *Config) {
 	currentTime := time.Now().Format("2006-01-02 3:4:5 pm")
 	errorFileName := "Abrasion_Error_log_" + currentTime + ".csv"
 	resultFileName := "Abrasion_Result_" + currentTime + ".csv"
@@ -32,19 +45,11 @@ func Start(c *Config) {
 	c.URLChan = make(chan string)
 
 	if c.GetEmail {
-		exp := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-		c.Regex = exp
+		c.Regex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	}
-
-	validate(c)
-
-	go c.Process()
-	c.Scrape(c.Site)
-
-	select {} // Block forever
 }
 
-func validate(c *Config) {
+func validateConfig(c *Config) {
 	hasHTTP := strings.Index(c.Site, "http") == 0
 	if !hasHTTP {
 		fmt.Println("URL must start with 'http://'")
