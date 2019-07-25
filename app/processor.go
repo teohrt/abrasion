@@ -17,10 +17,10 @@ func (c *Config) Process() {
 	go func() {
 		for {
 			select {
-			case URLString := <-c.URLChan:
-				u, err := url.Parse(URLString)
+			case URL := <-c.URLChan:
+				u, err := url.Parse(URL)
 				if err != nil {
-					c.ErrorLogger.Log("Error parsing URL. : " + URLString)
+					c.ErrorLogger.Log("Error parsing URL. : " + URL)
 					continue
 				}
 
@@ -32,7 +32,7 @@ func (c *Config) Process() {
 
 					visitedURLs[u.Host] = true
 
-					go c.Scrape(URLString)
+					go c.Scrape(URL)
 				}
 			}
 		}
