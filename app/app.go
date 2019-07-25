@@ -1,9 +1,8 @@
 package app
 
 import (
-	"fmt"
+	"net/url"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/teohrt/abrasion/utils"
@@ -29,7 +28,9 @@ func Start(c *Config) {
 	c.DataChan = make(chan string)
 	c.URLChan = make(chan string)
 
-	validate(c)
+	if err := validate(c); err != nil {
+		os.Exit(1)
+	}
 
 	go c.Process()
 	c.Scrape(c.Site)
@@ -37,10 +38,10 @@ func Start(c *Config) {
 	select {} // Block forever
 }
 
-func validate(c *Config) {
-	hasHTTP := strings.Index(c.Site, "http") == 0
-	if !hasHTTP {
-		fmt.Println("URL must start with 'http://'")
-		os.Exit(1)
+func validate(c *Config) error {
+	_, err := url.Parse(c.Site)
+	if err != nil {
+		c.ErrorLogger.Log("Error parsing URL. : " + c.Site)
 	}
+	return err
 }
