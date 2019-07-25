@@ -9,18 +9,21 @@ import (
 
 type Logger interface {
 	Log(s string)
-	FlushLogger()
+	Err(s string)
+	Flush()
 }
 
 type loggerimpl struct {
-	verbose bool
-	logger  *csv.Writer
+	verbose      bool
+	resultLogger *csv.Writer
+	errorLogger  *csv.Writer
 }
 
-func NewLogger(fileName string, verbose bool) Logger {
+func NewLogger(resultFileName string, errorFileName string, verbose bool) Logger {
 	return &loggerimpl{
-		verbose: verbose,
-		logger:  newCSVWriter(fileName),
+		verbose:      verbose,
+		resultLogger: newCSVWriter(resultFileName),
+		errorLogger:  newCSVWriter(errorFileName),
 	}
 }
 
@@ -29,13 +32,24 @@ func (l *loggerimpl) Log(s string) {
 		fmt.Println(s)
 	}
 
-	if err := l.logger.Write([]string{s}); err != nil {
+	if err := l.resultLogger.Write([]string{s}); err != nil {
 		log.Fatal("failed writing to file. Msg: " + s + "\n" + err.Error())
 	}
 }
 
-func (l *loggerimpl) FlushLogger() {
-	l.logger.Flush()
+func (l *loggerimpl) Err(s string) {
+	if l.verbose {
+		fmt.Println(s)
+	}
+
+	if err := l.errorLogger.Write([]string{s}); err != nil {
+		log.Fatal("failed writing to file. Msg: " + s + "\n" + err.Error())
+	}
+}
+
+func (l *loggerimpl) Flush() {
+	l.resultLogger.Flush()
+	l.errorLogger.Flush()
 }
 
 func newCSVWriter(filename string) *csv.Writer {

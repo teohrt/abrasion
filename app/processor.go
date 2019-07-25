@@ -7,8 +7,7 @@ import (
 
 // Scrapes new URLs and logs them
 func (c *Config) Process() {
-	defer c.ErrorLogger.FlushLogger()
-	defer c.ResultLogger.FlushLogger()
+	defer c.Logger.Flush()
 
 	visitedURLs := make(map[string]bool)
 
@@ -20,14 +19,14 @@ func (c *Config) Process() {
 			case URL := <-c.URLChan:
 				u, err := url.Parse(URL)
 				if err != nil {
-					c.ErrorLogger.Log("Error parsing URL. : " + URL)
+					c.Logger.Err("Error parsing URL. : " + URL)
 					continue
 				}
 
 				// If hostname hasn't already been visited
 				if _, exists := visitedURLs[u.Host]; !exists {
 					if !c.GetEmail {
-						c.ResultLogger.Log(u.Host)
+						c.Logger.Log(u.Host)
 					}
 
 					visitedURLs[u.Host] = true
@@ -38,14 +37,12 @@ func (c *Config) Process() {
 		}
 	}()
 
-	go func() {
+	if c.GetEmail {
 		for {
 			select {
 			case result := <-c.DataChan:
-				if c.GetEmail {
-					c.ResultLogger.Log(result)
-				}
+				c.Logger.Log(result)
 			}
 		}
-	}()
+	}
 }

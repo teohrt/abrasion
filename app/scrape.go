@@ -13,7 +13,7 @@ import (
 func (c *Config) Scrape(URL string) {
 	res, err := c.Client.Get(URL)
 	if err != nil {
-		c.ErrorLogger.Log(err.Error())
+		c.Logger.Err(err.Error())
 		return
 	}
 	defer res.Body.Close()
@@ -21,7 +21,7 @@ func (c *Config) Scrape(URL string) {
 	if c.GetEmail {
 		bodyBytes, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			c.ErrorLogger.Log("failed reading response body: " + err.Error())
+			c.Logger.Err("failed reading response body: " + err.Error())
 		} else {
 			c.scrapeForEmails(string(bodyBytes))
 			res.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Reset the res io.Reader for re-use in the next function

@@ -17,13 +17,12 @@ type Config struct {
 	GetEmail    bool
 	Verbose     bool
 
-	Client       http.Client
-	Wg           *sync.WaitGroup
-	DataChan     chan string
-	URLChan      chan string
-	ErrorLogger  utils.Logger
-	ResultLogger utils.Logger
-	Regex        *regexp.Regexp
+	Client   http.Client
+	Wg       *sync.WaitGroup
+	DataChan chan string
+	URLChan  chan string
+	Logger   utils.Logger
+	Regex    *regexp.Regexp
 }
 
 func Start(c *Config) {
@@ -46,9 +45,8 @@ func initApp(c *Config) {
 	currentTime := time.Now().Format("2006-01-02 3:4:5 pm")
 	errorFileName := "Abrasion_Error_log_" + currentTime + ".csv"
 	resultFileName := "Abrasion_Result_log_" + currentTime + ".csv"
+	c.Logger = utils.NewLogger(resultFileName, errorFileName, c.Verbose)
 
-	c.ErrorLogger = utils.NewLogger(errorFileName, c.Verbose)
-	c.ResultLogger = utils.NewLogger(resultFileName, c.Verbose)
 	c.DataChan = make(chan string)
 	c.URLChan = make(chan string)
 
@@ -64,7 +62,7 @@ func initApp(c *Config) {
 func validate(c *Config) error {
 	_, err := url.Parse(c.SeedURL)
 	if err != nil {
-		c.ErrorLogger.Log("Error parsing seed URL. : " + c.SeedURL)
+		c.Logger.Err("Error parsing seed URL. : " + c.SeedURL)
 	}
 	return err
 }
