@@ -45,7 +45,6 @@ func (c *Config) Process() {
 				if c.GetEmail {
 					c.ResultLogger.Log(result)
 				}
-
 			}
 		}
 	}()
