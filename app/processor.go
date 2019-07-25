@@ -3,10 +3,11 @@ package app
 import (
 	"fmt"
 	"net/url"
+	"sync"
 )
 
 // Scrapes new URLs and logs them
-func (c *Config) Process() {
+func (c *Config) Process(wg *sync.WaitGroup) {
 	defer c.ErrorLogger.FlushLogger()
 	defer c.ResultLogger.FlushLogger()
 
@@ -32,4 +33,6 @@ func (c *Config) Process() {
 			}
 		}
 	}
+
+	wg.Done()
 }

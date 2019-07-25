@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/teohrt/abrasion/utils"
@@ -40,10 +41,13 @@ func Start(c *Config) {
 		os.Exit(1)
 	}
 
-	go c.Process()
-	c.Scrape(c.SeedURL)
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
 
-	select {} // Block forever
+	go c.Process(wg)
+	go c.Scrape(c.SeedURL)
+
+	wg.Wait()
 }
 
 func validate(c *Config) error {
