@@ -5,8 +5,14 @@ BINARY_NAME=abrasion
 run: build
 	./$(BINARY_NAME)
 
-run-v: build
+run-verbose: build
 	./$(BINARY_NAME) -verbose
+
+run-limited: build
+	./$(BINARY_NAME) -scrapeLimit=150 -verbose
+
+email: build
+	./$(BINARY_NAME) -getEmail
 
 build:
 	$(GOBUILD)
