@@ -1,19 +1,24 @@
 package app
 
 import (
-	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"regexp"
-	"strings"
+	"sync"
 	"time"
 
 	"github.com/teohrt/abrasion/utils"
 )
 
 type Config struct {
-	Site         string
-	GetEmail     bool
-	Verbose      bool
+	SeedURL     string
+	ScrapeLimit int
+	GetEmail    bool
+	Verbose     bool
+
+	Client       http.Client
+	Wg           *sync.WaitGroup
 	DataChan     chan string
 	URLChan      chan string
 	ErrorLogger  utils.Logger
@@ -22,37 +27,44 @@ type Config struct {
 }
 
 func Start(c *Config) {
-	// Get ready to work
 	initApp(c)
-	validateConfig(c)
 
-	// Work
+	if err := validate(c); err != nil {
+		os.Exit(1)
+	}
+
 	go c.Process()
-	c.Scrape(c.Site)
+	go c.Scrape(c.SeedURL)
 
-	// Don't stop
-	select {}
+	c.Wg.Wait()
 }
 
 func initApp(c *Config) {
+	c.Wg = &sync.WaitGroup{}
+	c.Wg.Add(c.ScrapeLimit)
+
 	currentTime := time.Now().Format("2006-01-02 3:4:5 pm")
 	errorFileName := "Abrasion_Error_log_" + currentTime + ".csv"
-	resultFileName := "Abrasion_Result_" + currentTime + ".csv"
+	resultFileName := "Abrasion_Result_log_" + currentTime + ".csv"
 
 	c.ErrorLogger = utils.NewLogger(errorFileName, c.Verbose)
 	c.ResultLogger = utils.NewLogger(resultFileName, c.Verbose)
 	c.DataChan = make(chan string)
 	c.URLChan = make(chan string)
 
+	c.Client = http.Client{
+		Timeout: time.Duration(5 * time.Second),
+	}
+
 	if c.GetEmail {
 		c.Regex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	}
 }
 
-func validateConfig(c *Config) {
-	hasHTTP := strings.Index(c.Site, "http") == 0
-	if !hasHTTP {
-		fmt.Println("URL must start with 'http://'")
-		os.Exit(1)
+func validate(c *Config) error {
+	_, err := url.Parse(c.SeedURL)
+	if err != nil {
+		c.ErrorLogger.Log("Error parsing seed URL. : " + c.SeedURL)
 	}
+	return err
 }

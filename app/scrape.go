@@ -11,7 +11,7 @@ import (
 
 // Extracts all links from a page and concurrently returns them over the datachan
 func (c *Config) Scrape(URL string) {
-	res, err := http.Get(URL)
+	res, err := c.Client.Get(URL)
 	if err != nil {
 		c.ErrorLogger.Log(err.Error())
 		return
@@ -29,6 +29,8 @@ func (c *Config) Scrape(URL string) {
 	}
 
 	c.scrapeForURLs(res)
+
+	c.Wg.Done()
 }
 
 func (c *Config) scrapeForEmails(body string) {
@@ -57,14 +59,12 @@ func (c *Config) scrapeForURLs(res *http.Response) {
 
 		case tokenType == html.StartTagToken:
 			token := tokenizer.Token()
-
 			isATag := token.Data == "a"
 			if !isATag {
 				continue
 			}
 
 			newURL, ok := getHrefLink(token)
-
 			if !ok {
 				continue
 			}

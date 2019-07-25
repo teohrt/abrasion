@@ -49,5 +49,4 @@ func (c *Config) Process() {
 			}
 		}
 	}()
-
 }
