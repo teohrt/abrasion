@@ -1,7 +1,6 @@
 package app
 
 import (
-	"net/http"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -9,7 +8,7 @@ import (
 
 // Extracts all links from a page and concurrently returns them over the datachan
 func (c *Config) Scrape(URL string) {
-	res, err := http.Get(URL)
+	res, err := c.Client.Get(URL)
 	if err != nil {
 		c.ErrorLogger.Log(err.Error())
 		return
