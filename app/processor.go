@@ -38,11 +38,13 @@ func (c *Config) Process() {
 	}()
 
 	if c.GetEmail {
-		for {
-			select {
-			case result := <-c.DataChan:
-				c.Logger.Log(result)
+		go func() {
+			for {
+				select {
+				case result := <-c.DataChan:
+					c.Logger.Log(result)
+				}
 			}
-		}
+		}()
 	}
 }
