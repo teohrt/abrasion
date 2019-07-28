@@ -1,15 +1,12 @@
 package app
 
 import (
-	"bytes"
-	"io/ioutil"
-	"net/http"
 	"strings"
 
 	"golang.org/x/net/html"
 )
 
-// Extracts all links from a page and concurrently returns them over the datachan
+// Extracts all links and emails from a page and sends them back to processor over channels
 func (c *Config) Scrape(URL string) {
 	res, err := c.Client.Get(URL)
 	if err != nil {
@@ -18,30 +15,6 @@ func (c *Config) Scrape(URL string) {
 	}
 	defer res.Body.Close()
 
-	if c.GetEmail {
-		bodyBytes, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			c.Logger.Err("failed reading response body: " + err.Error())
-		} else {
-			c.scrapeForEmails(string(bodyBytes))
-			res.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Reset the res io.Reader for re-use in the next function
-		}
-	}
-
-	c.scrapeForURLs(res)
-
-	c.Wg.Done()
-}
-
-func (c *Config) scrapeForEmails(body string) {
-	//fmt.Println(body)
-	matches := c.Regex.FindAllString(body, -1)
-	for _, v := range matches {
-		c.DataChan <- v
-	}
-}
-
-func (c *Config) scrapeForURLs(res *http.Response) {
 	tokenizer := html.NewTokenizer(res.Body)
 
 	loop := true
@@ -64,17 +37,34 @@ func (c *Config) scrapeForURLs(res *http.Response) {
 				continue
 			}
 
-			newURL, ok := getHrefLink(token)
+			link, ok := getHrefLink(token)
 			if !ok {
 				continue
 			}
 
-			hasHTTP := strings.Index(newURL, "http") == 0
+			hasHTTP := strings.Index(link, "http") == 0
 			if hasHTTP {
-				c.URLChan <- newURL
+				c.URLChan <- link
+			} else {
+				if c.GetEmail {
+					isEmail := strings.Index(link, "mailto:") == 0
+					if isEmail {
+
+						linkRunes := []rune(link)
+						linkSubstring := linkRunes[7:] // remove "mailto:"
+						email := string(linkSubstring)
+
+						if c.Regex.MatchString(email) {
+							c.DataChan <- email
+						} else {
+							c.Logger.Err("BAD EMAIL: " + email)
+						}
+					}
+				}
 			}
 		}
 	}
+	c.Wg.Done()
 }
 
 func getHrefLink(t html.Token) (URL string, ok bool) {
