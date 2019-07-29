@@ -9,7 +9,7 @@ run-limited: build
 	./$(BINARY_NAME) -scrapeLimit=150 -verbose
 
 email: build
-	./$(BINARY_NAME) -getEmail -verbose
+	./$(BINARY_NAME) -getEmails -verbose
 
 build:
 	$(GOBUILD)

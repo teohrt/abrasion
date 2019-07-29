@@ -18,7 +18,7 @@ import (
 type Config struct {
 	SeedURL     string
 	ScrapeLimit int
-	GetEmail    bool
+	GetEmails   bool
 	Verbose     bool
 	Debug       bool
 
@@ -64,7 +64,7 @@ func initApp(c *Config) {
 		Timeout: time.Duration(10 * time.Second),
 	}
 
-	if c.GetEmail {
+	if c.GetEmails {
 		c.Regex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 	}
 

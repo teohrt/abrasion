@@ -46,7 +46,7 @@ func (c *Config) Scrape(URL string) {
 			if hasHTTP {
 				c.URLChan <- link
 			} else {
-				if c.GetEmail {
+				if c.GetEmails {
 					isEmail := strings.Index(link, "mailto:") == 0
 					if isEmail {
 

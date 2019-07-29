@@ -23,7 +23,7 @@ func (c *Config) Process() {
 
 				// If hostname hasn't already been visited
 				if _, exists := visitedURLs[u.Host]; !exists {
-					if !c.GetEmail {
+					if !c.GetEmails {
 						c.Logger.Log(u.Host)
 					}
 
@@ -34,7 +34,7 @@ func (c *Config) Process() {
 		}
 	}()
 
-	if c.GetEmail {
+	if c.GetEmails {
 		go func() {
 			for {
 				select {
