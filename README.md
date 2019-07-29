@@ -24,4 +24,4 @@ make build
 * scrapeLimit - Sets the number of URLs to scrape. Defaults to MAXINT when not set.
 
 ## Logs
-Abrasion has 3 potential output streams. By default it outputs errors and results to their own respective .CSV files and will also print to console if the -verbose flag is set.
+Abrasion has 3 potential output streams. By default it outputs errors and results to their own respective text files and will also print to console if the -verbose flag is set.
