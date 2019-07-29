@@ -32,7 +32,6 @@ type Config struct {
 
 func Start(c *Config) {
 	initApp(c)
-	defer c.Logger.Close()
 
 	if err := validate(c); err != nil {
 		os.Exit(1)
