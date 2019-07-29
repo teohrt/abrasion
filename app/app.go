@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -27,6 +28,7 @@ type Config struct {
 
 func Start(c *Config) {
 	initApp(c)
+	defer c.Logger.Close()
 
 	if err := validate(c); err != nil {
 		os.Exit(1)
@@ -42,16 +44,19 @@ func initApp(c *Config) {
 	c.Wg = &sync.WaitGroup{}
 	c.Wg.Add(c.ScrapeLimit)
 
-	currentTime := time.Now().Format("2006-01-02 3:4:5 pm")
-	errorFileName := "Abrasion_Error_log_" + currentTime + ".csv"
-	resultFileName := "Abrasion_Result_log_" + currentTime + ".csv"
-	c.Logger = utils.NewLogger(resultFileName, errorFileName, c.Verbose)
+	currentTime := time.Now().Format("2006-01-02_3:4:5_pm")
+	errorFileName := "Abrasion_Error_log_" + currentTime + ".txt"
+	resultFileName := "Abrasion_Result_log_" + currentTime + ".txt"
+	logger, err := utils.NewLogger(resultFileName, errorFileName, c.Verbose)
+	if err != nil {
+		log.Fatal("Failed creating logger " + err.Error())
+	}
 
+	c.Logger = logger
 	c.DataChan = make(chan string)
 	c.URLChan = make(chan string)
-
 	c.Client = http.Client{
-		Timeout: time.Duration(5 * time.Second),
+		Timeout: time.Duration(10 * time.Second),
 	}
 
 	if c.GetEmail {

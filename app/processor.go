@@ -7,8 +7,6 @@ import (
 
 // Scrapes new URLs and logs them
 func (c *Config) Process() {
-	defer c.Logger.Flush()
-
 	visitedURLs := make(map[string]bool)
 
 	fmt.Println("Abrasion is scraping...")
@@ -30,7 +28,6 @@ func (c *Config) Process() {
 					}
 
 					visitedURLs[u.Host] = true
-
 					go c.Scrape(URL)
 				}
 			}
