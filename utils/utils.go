@@ -1,38 +1,58 @@
 package utils
 
 import (
+	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"os"
 )
 
+const MAX_BUFFER_SIZE int = 100
+
 type Logger interface {
 	Log(s string)
 	Err(s string)
-	Close()
+	Close() error
+	Flush() error
 }
 
 type loggerimpl struct {
-	verbose    bool
-	resultFile *os.File
-	errorFile  *os.File
+	verbose           bool
+	debug             bool
+	resultFile        *os.File
+	errorFile         *os.File
+	resultWriter      *bufio.Writer
+	errorWriter       *bufio.Writer
+	resultBufferCount int
+	errorBufferCount  int
 }
 
-func NewLogger(resultFileName string, errorFileName string, verbose bool) (Logger, error) {
-	r, err := createFile(resultFileName)
+func NewLogger(resultFileName string, errorFileName string, verbose bool, debug bool) (Logger, error) {
+	rf, err := createFile(resultFileName)
 	if err != nil {
 		return nil, err
 	}
-	e, err := createFile(errorFileName)
-	if err != nil {
-		return nil, err
+	rw := bufio.NewWriter(rf)
+
+	ef := &os.File{}
+	ew := &bufio.Writer{}
+	if debug {
+		ef, err = createFile(errorFileName)
+		if err != nil {
+			return nil, err
+		}
+		ew = bufio.NewWriter(ef)
 	}
 
 	return &loggerimpl{
-		verbose:    verbose,
-		resultFile: r,
-		errorFile:  e,
+		verbose:           verbose,
+		debug:             debug,
+		resultFile:        rf,
+		resultWriter:      rw,
+		errorFile:         ef,
+		errorWriter:       ew,
+		resultBufferCount: 0,
+		errorBufferCount:  0,
 	}, nil
 }
 
@@ -41,34 +61,69 @@ func (l *loggerimpl) Log(s string) {
 		fmt.Println(s)
 	}
 
-	_, err := io.WriteString(l.resultFile, s+"\n")
-	if err != nil {
-		log.Fatal("failed writing to file. Msg: " + s + "\n" + err.Error())
-	}
-	err = l.resultFile.Sync()
-	if err != nil {
-		log.Fatal("failed syncing file. Msg: " + s + "\n" + err.Error())
+	fmt.Fprint(l.resultWriter, s+"\n")
+	l.resultBufferCount++
+
+	if l.resultBufferCount >= MAX_BUFFER_SIZE {
+		err := l.resultWriter.Flush()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+		l.resultBufferCount = 0
 	}
 }
 
 func (l *loggerimpl) Err(s string) {
-	if l.verbose {
+	if l.verbose && l.debug {
 		fmt.Println(s)
 	}
 
-	_, err := io.WriteString(l.errorFile, s+"\n")
-	if err != nil {
-		log.Fatal("failed writing to file. Msg: " + s + "\n" + err.Error())
-	}
-	err = l.errorFile.Sync()
-	if err != nil {
-		log.Fatal("failed syncing file. Msg: " + s + "\n" + err.Error())
+	if l.debug {
+		fmt.Fprint(l.errorWriter, s+"\n")
+		l.errorBufferCount++
+
+		if l.errorBufferCount >= MAX_BUFFER_SIZE {
+			err := l.resultWriter.Flush()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+
+			l.errorBufferCount = 0
+		}
 	}
 }
 
-func (l *loggerimpl) Close() {
-	l.resultFile.Close()
-	l.errorFile.Close()
+func (l *loggerimpl) Close() error {
+	err := l.resultFile.Close()
+	if err != nil {
+		return err
+	}
+
+	if l.debug {
+		err = l.errorFile.Close()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (l *loggerimpl) Flush() error {
+	err := l.resultWriter.Flush()
+	if err != nil {
+		return err
+	}
+
+	if l.debug {
+		err = l.errorWriter.Flush()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func createFile(filename string) (*os.File, error) {
