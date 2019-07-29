@@ -1,12 +1,15 @@
 package app
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"regexp"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/teohrt/abrasion/utils"
@@ -17,6 +20,7 @@ type Config struct {
 	ScrapeLimit int
 	GetEmail    bool
 	Verbose     bool
+	Debug       bool
 
 	Client   http.Client
 	Wg       *sync.WaitGroup
@@ -38,6 +42,7 @@ func Start(c *Config) {
 	go c.Scrape(c.SeedURL)
 
 	c.Wg.Wait()
+	cleanup(c)
 }
 
 func initApp(c *Config) {
@@ -47,7 +52,7 @@ func initApp(c *Config) {
 	currentTime := time.Now().Format("2006-01-02_3:4:5_pm")
 	errorFileName := "Abrasion_Error_log_" + currentTime + ".txt"
 	resultFileName := "Abrasion_Result_log_" + currentTime + ".txt"
-	logger, err := utils.NewLogger(resultFileName, errorFileName, c.Verbose)
+	logger, err := utils.NewLogger(resultFileName, errorFileName, c.Verbose, c.Debug)
 	if err != nil {
 		log.Fatal("Failed creating logger " + err.Error())
 	}
@@ -62,6 +67,8 @@ func initApp(c *Config) {
 	if c.GetEmail {
 		c.Regex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	}
+
+	handleKill(c)
 }
 
 func validate(c *Config) error {
@@ -70,4 +77,21 @@ func validate(c *Config) error {
 		c.Logger.Err("Error parsing seed URL. : " + c.SeedURL)
 	}
 	return err
+}
+
+func cleanup(c *Config) {
+	c.Logger.Flush()
+	c.Logger.Close()
+	fmt.Println("\nStopped scrapping.")
+	os.Exit(1)
+}
+
+// Handles cleanup on interupt signal
+func handleKill(c *Config) {
+	ch := make(chan os.Signal)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-ch
+		cleanup(c)
+	}()
 }
