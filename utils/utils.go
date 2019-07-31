@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 )
 
 const MAX_BUFFER_SIZE int = 100
@@ -25,6 +26,7 @@ type loggerimpl struct {
 	errorWriter       *bufio.Writer
 	resultBufferCount int
 	errorBufferCount  int
+	mutex             *sync.Mutex
 }
 
 func NewLogger(resultFileName string, errorFileName string, verbose bool, debug bool) (Logger, error) {
@@ -53,10 +55,13 @@ func NewLogger(resultFileName string, errorFileName string, verbose bool, debug 
 		errorWriter:       ew,
 		resultBufferCount: 0,
 		errorBufferCount:  0,
+		mutex:             &sync.Mutex{},
 	}, nil
 }
 
 func (l *loggerimpl) Log(s string) {
+	l.mutex.Lock()
+
 	if l.verbose {
 		fmt.Println(s)
 	}
@@ -65,16 +70,19 @@ func (l *loggerimpl) Log(s string) {
 	l.resultBufferCount++
 
 	if l.resultBufferCount >= MAX_BUFFER_SIZE {
-		err := l.resultWriter.Flush()
-		if err != nil {
+		if err := l.resultWriter.Flush(); err != nil {
 			log.Fatal(err.Error())
 		}
 
 		l.resultBufferCount = 0
 	}
+
+	l.mutex.Unlock()
 }
 
 func (l *loggerimpl) Err(s string) {
+	l.mutex.Lock()
+
 	if l.verbose && l.debug {
 		fmt.Println(s)
 	}
@@ -84,14 +92,15 @@ func (l *loggerimpl) Err(s string) {
 		l.errorBufferCount++
 
 		if l.errorBufferCount >= MAX_BUFFER_SIZE {
-			err := l.resultWriter.Flush()
-			if err != nil {
+			if err := l.errorWriter.Flush(); err != nil {
 				log.Fatal(err.Error())
 			}
 
 			l.errorBufferCount = 0
 		}
 	}
+
+	l.mutex.Unlock()
 }
 
 func (l *loggerimpl) Close() error {
