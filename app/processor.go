@@ -7,11 +7,10 @@ import (
 
 // Scrapes new URLs and logs them
 func (c *Config) Process() {
-	visitedURLs := make(map[string]bool)
-
 	fmt.Println("Abrasion is scraping...")
 
 	go func() {
+		visitedURLs := make(map[string]bool)
 		for {
 			select {
 			case URL := <-c.URLChan:
@@ -36,10 +35,14 @@ func (c *Config) Process() {
 
 	if c.GetEmails {
 		go func() {
+			emails := make(map[string]bool)
 			for {
 				select {
-				case result := <-c.DataChan:
-					c.Logger.Log(result)
+				case e := <-c.DataChan:
+					if _, exists := emails[e]; !exists {
+						emails[e] = true
+						c.Logger.Log(e)
+					}
 				}
 			}
 		}()
