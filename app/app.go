@@ -48,15 +48,12 @@ func initApp(c *Config) {
 	c.Wg = &sync.WaitGroup{}
 	c.Wg.Add(c.ScrapeLimit)
 
-	currentTime := time.Now().Format("2006-01-02_3:4:5_pm")
-	errorFileName := "Abrasion_Error_log_" + currentTime + ".txt"
-	resultFileName := "Abrasion_Result_log_" + currentTime + ".txt"
-	logger, err := utils.NewLogger(resultFileName, errorFileName, c.Verbose, c.Debug)
+	logger, err := initLogger(c.Verbose, c.Debug)
 	if err != nil {
-		log.Fatal("Failed creating logger " + err.Error())
+		log.Fatal("Failed creating logger: " + err.Error())
 	}
-
 	c.Logger = logger
+
 	c.DataChan = make(chan string)
 	c.URLChan = make(chan string)
 	c.Client = http.Client{
@@ -68,6 +65,18 @@ func initApp(c *Config) {
 	}
 
 	handleKill(c)
+}
+
+func initLogger(verbose bool, debug bool) (utils.Logger, error) {
+	currentTime := time.Now().Format("2006-01-02_3:4:5_pm")
+	errorFileName := "Abrasion_Debug_log_" + currentTime + ".txt"
+	resultFileName := "Abrasion_Result_log_" + currentTime + ".txt"
+	logger, err := utils.NewLogger(resultFileName, errorFileName, verbose, debug)
+	if err != nil {
+		return nil, err
+	}
+
+	return logger, nil
 }
 
 func validate(c *Config) error {
