@@ -66,7 +66,7 @@ func (l *loggerimpl) Log(s string) {
 		fmt.Println(s)
 	}
 
-	fmt.Fprint(l.resultWriter, s+"\n")
+	fmt.Fprintln(l.resultWriter, s)
 	l.resultBufferCount++
 
 	if l.resultBufferCount >= MAX_BUFFER_SIZE {
@@ -88,7 +88,7 @@ func (l *loggerimpl) Err(s string) {
 	}
 
 	if l.debug {
-		fmt.Fprint(l.errorWriter, s+"\n")
+		fmt.Fprintln(l.errorWriter, s)
 		l.errorBufferCount++
 
 		if l.errorBufferCount >= MAX_BUFFER_SIZE {
