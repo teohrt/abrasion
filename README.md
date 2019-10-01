@@ -11,7 +11,7 @@ make build
 ## Usage
 ```bash
 # Crawl the web starting from google.com, the default seed URL, and output emails to a text file.
-./abrasion -getEmail
+./abrasion -getEmails
 
 # Scrape 100 URLs starting with given seed URL. Output all related URLs and debug logs to their respective files, as well as the console. 
 ./abrasion -url=https://reddit.com -scrapeLimit=100 -verbose -debug
